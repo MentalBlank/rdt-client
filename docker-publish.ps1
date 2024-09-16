@@ -33,7 +33,7 @@
     #>
 param(
     [string]$Version = "",
-    [string]$DockerAccount = "rogerfar",
+    [string]$DockerAccount = "mentalblank",
     [string]$Platforms = "linux/arm64/v8,linux/amd64",
     [string]$Dockerfile = "Dockerfile",
     [switch]$SkipPush,

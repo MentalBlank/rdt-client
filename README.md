@@ -1,4 +1,4 @@
-# Real-Debrid Torrent Client
+# Real-Debrid Torrent Client (Test)
 
 This is a web interface to manage your torrents on Real-Debrid, AllDebrid or Premiumize. It supports the following features:
 
@@ -20,9 +20,68 @@ This is a web interface to manage your torrents on Real-Debrid, AllDebrid or Pre
 
 ## Docker Setup
 
-Please see our separate Docker setup Read Me.
+You can run the docker container on Windows, Linux. To get started either use _Docker Compose_.
 
-[Readme for Docker](README-DOCKER.md)
+### Docker Compose
+
+You can use the provided docker compose to run:
+
+```yaml
+version: "3"
+services:
+  rdtclient:
+    restart: unless-stopped
+    container_name: rdtclient
+    # build:
+    #     context: .
+    #     dockerfile: Dockerfile
+    image: mentalblank/rdt-client:latest
+    hostname: rdtclient
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=ETC/UTC
+    logging:
+        driver: json-file
+        options:
+            max-size: 10m
+    ports:
+      - 6500/tcp
+    networks:
+      - saltbox
+    labels:
+      com.github.saltbox.saltbox_managed: true 
+      traefik.enable: true 
+      traefik.http.routers.rdtclient-http.entrypoints: web 
+      traefik.http.routers.rdtclient-http.middlewares: globalHeaders@file,redirect-to-https@docker,cloudflarewarp@docker 
+      traefik.http.routers.rdtclient-http.rule: Host(`rdtclient.yourdomain.com`) 
+      traefik.http.routers.rdtclient-http.service: rdtclient 
+      traefik.http.routers.rdtclient.entrypoints: websecure 
+      traefik.http.routers.rdtclient.middlewares: globalHeaders@file,secureHeaders@file,cloudflarewarp@docker 
+      traefik.http.routers.rdtclient.rule: Host(`rdtclient.yourdomain.com`) 
+      traefik.http.routers.rdtclient.service: rdtclient 
+      traefik.http.routers.rdtclient.tls.certresolver: cfdns 
+      traefik.http.routers.rdtclient.tls.options: securetls@file 
+      traefik.http.services.rdtclient.loadbalancer.server.port: 6500 
+    volumes:
+      - /opt/rdtclient:/CONFIG
+      - /etc/localtime:/etc/localtime:ro
+      - /mnt:/mnt
+      - /opt/rdtclient/data:/data
+      - /opt/rdtclient/data/db:/data/db
+
+networks:
+  saltbox:
+    external: true
+```
+
+And to run:
+
+```console
+docker-compose up -d
+```
+
+Replace the paths in `volumes` as in the above step.
 
 ## Run as a Service
 

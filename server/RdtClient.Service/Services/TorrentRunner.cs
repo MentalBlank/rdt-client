@@ -73,7 +73,18 @@ public class TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Dow
             Log($"No RealDebridApiKey set in settings");
             return;
         }
-            
+
+        if (Settings.Get.DownloadClient.Client == Data.Enums.DownloadClient.Symlink)
+        {
+            var rcloneMountPath = Settings.Get.DownloadClient.RcloneMountPath;
+
+            if (!Directory.Exists(rcloneMountPath))
+            {
+                Log($"Rclone mount path ({rcloneMountPath}) was not found!");
+                return;
+            }
+        }
+
         var settingDownloadLimit = Settings.Get.General.DownloadLimit;
         if (settingDownloadLimit < 1)
         {
@@ -382,6 +393,8 @@ public class TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Dow
 
                     if (ActiveDownloadClients.TryAdd(download.DownloadId, downloadClient))
                     {
+                    	// Small delay not to spam the hell out of debrid service api...
+                    	await Task.Delay(100);
                         Log($"Starting download", download, torrent);
 
                         try
