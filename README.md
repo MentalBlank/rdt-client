@@ -1,4 +1,4 @@
-# Real-Debrid Torrent Client (Test)
+# Real-Debrid Torrent Client
 
 This is a web interface to manage your torrents on Real-Debrid, AllDebrid or Premiumize. It supports the following features:
 
