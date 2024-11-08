@@ -4,6 +4,8 @@ using RdtClient.Service.Helpers;
 using SharpCompress.Archives;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.Zip;
+using SharpCompress.Common;
+using System;
 
 namespace RdtClient.Service.Services;
 
@@ -29,9 +31,14 @@ public class UnpackClient(Download download, String destinationPath)
 
             Task.Run(async delegate
             {
-                if (!_cancellationTokenSource.IsCancellationRequested)
+            	if (_torrent.DownloadClient == Data.Enums.DownloadClient.Symlink)
                 {
-                    await Unpack(filePath, _cancellationTokenSource.Token);
+                    Error = $"Compressed file: {_torrent.RdName}";
+                    Finished = true;
+                }
+                else if (!_cancellationTokenSource.IsCancellationRequested)
+                {
+	                await Unpack(filePath, _cancellationTokenSource.Token);
                 }
             });
         }
@@ -51,7 +58,7 @@ public class UnpackClient(Download download, String destinationPath)
     {
         try
         {
-            if (!File.Exists(filePath))
+            if (!File.Exists(filePath) || _torrent.DownloadClient == Data.Enums.DownloadClient.Symlink)
             {
                 return;
             }
@@ -148,25 +155,29 @@ public class UnpackClient(Download download, String destinationPath)
         var extension = Path.GetExtension(filePath);
 
         IArchive archive;
-        if (extension == ".zip")
+		if (_torrent.DownloadClient == Data.Enums.DownloadClient.Symlink)
         {
-            archive = ZipArchive.Open(fi);
+        	throw new Exception("Task was cancelled");
+        	return;
+        } else {
+	        if (extension == ".zip")
+	        {
+	            archive = ZipArchive.Open(fi);
+	        }
+	        else
+	        {
+	            archive = RarArchive.Open(fi);
+	        }
+	
+	        archive.ExtractToDirectory(extractPath,
+	                                   d =>
+	                                   {
+	                                       Debug.WriteLine(d);
+	                                       Progess = (Int32) Math.Round(d);
+	                                   },
+	                                   cancellationToken: cancellationToken);
         }
-        else
-        {
-            archive = RarArchive.Open(fi);
-        }
-
-        archive.ExtractToDirectory(extractPath,
-                                   d =>
-                                   {
-                                       Debug.WriteLine(d);
-                                       Progess = (Int32) Math.Round(d);
-                                   },
-                                   cancellationToken: cancellationToken);
-        
         archive.Dispose();
-
         GC.Collect();
     }
 }

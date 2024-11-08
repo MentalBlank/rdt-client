@@ -69,6 +69,7 @@ public class DownloadClient(Download download, Torrent torrent, String destinati
             };
 
             var result = await Downloader.Download();
+            await Task.Delay(1000);
 
             return result;
         }

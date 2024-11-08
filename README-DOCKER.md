@@ -1,4 +1,4 @@
-# [rogerfar/rdt-client](https://github.com/rogerfar/rdt-client)
+# [mentalblank/rdt-client](https://github.com/mentalblank/rdt-client)
 Thid docker file follows the [linuxserver.io](https://linuxserver.io) pattern that leverages the [s6-overlay](https://github.com/just-containers/s6-overlay) to run the application as a service within the container.  This allows for scripts to be run prior to start of the application to handle initalization and setting of permissions. 
 
 rdt-client is a web a web interface to manage your torrents on Real-Debrid. It supports the following features:
@@ -13,7 +13,7 @@ rdt-client is a web a web interface to manage your torrents on Real-Debrid. It s
 
 Our images support multiple architectures such as `x86-64`, `arm64` and `armhf`. We utilise the docker manifest for multi-platform awareness. More information is available from docker [here](https://github.com/docker/distribution/blob/master/docs/spec/manifest-v2-2.md#manifest-list) and our announcement [here](https://blog.linuxserver.io/2019/02/21/the-lsio-pipeline-project/).
 
-Simply pulling `rogerfar/rdt-client` should retrieve the correct image for your arch, but you can also pull specific arch images via tags.
+Simply pulling `mentalblank/rdt-client` should retrieve the correct image for your arch, but you can also pull specific arch images via tags.
 
 The architectures supported by this image are:
 
@@ -44,7 +44,7 @@ Compatible with docker-compose v2 schemas.
 version: '3.3'
 services:
   rdtclient:
-    image: rogerfar/rdtclient
+    image: mentalblank/rdtclient
     container_name: rdtclient
     environment:
       - PUID=1000
@@ -74,7 +74,7 @@ docker run -d \
   -v <path to data>:/data/db \
   -v <path/to/downloads>:/data/downloads \
   --restart unless-stopped \
-  rogerfar/rdtclient
+  mentalblank/rdtclient
 ```
 
 ## Parameters
@@ -133,7 +133,7 @@ Webui can be found at  `<your-ip>:6500`
 * container version number
   * `docker inspect -f '{{ index .Config.Labels "build_version" }}' rdtclient`
 * image version number
-  * `docker inspect -f '{{ index .Config.Labels "build_version" }}' rogerfar/rdtclient`
+  * `docker inspect -f '{{ index .Config.Labels "build_version" }}' mentalblank/rdtclient`
 
 ## Updating Info
 
@@ -149,7 +149,7 @@ Below are the instructions for updating containers:
 * You can also remove the old dangling images: `docker image prune`
 
 ### Via Docker Run
-* Update the image: `docker pull rogerfar/rdtclient`
+* Update the image: `docker pull mentalblank/rdtclient`
 * Stop the running container: `docker stop rdtclient`
 * Delete the container: `docker rm rdtclient`
 * Recreate a new container with the same docker run parameters as instructed above (if mapped correctly to a host folder, your `/data` folder and settings will be preserved)
@@ -179,7 +179,7 @@ cd docker-rdtclient
 docker build \
   --no-cache \
   --pull \
-  -t rogerfar/rtd-client:latest .
+  -t mentalblank/rdt-client:latest .
 ```
 
 The ARM variants can be built on x86_64 hardware using `multiarch/qemu-user-static`

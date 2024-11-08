@@ -126,14 +126,14 @@ public class RealDebridTorrentClient(ILogger<RealDebridTorrentClient> logger, IH
     public async Task<String> AddMagnet(String magnetLink)
     {
         var result = await GetClient().Torrents.AddMagnetAsync(magnetLink);
-
+		var resultId = result?.Id?.ToString() ?? throw new($"Unable to add magnet link. Invalid response ID: {result?.Id}");
         return result.Id;
     }
 
     public async Task<String> AddFile(Byte[] bytes)
     {
         var result = await GetClient().Torrents.AddFileAsync(bytes);
-
+		var resultId = result?.Id?.ToString() ?? throw new($"Unable to add magnet link. Invalid response ID: {result?.Id}");
         return result.Id;
     }
 
@@ -180,7 +180,12 @@ public class RealDebridTorrentClient(ILogger<RealDebridTorrentClient> logger, IH
             Log("Selecting manual selected files", torrent);
             files = torrent.Files.Where(m => torrent.ManualFiles.Any(f => m.Path.EndsWith(f))).ToList();
         }
+        if (files.Count == 0)
+        {
+            Log($"Filtered all files out! Downloading ALL files instead!", torrent);
 
+            files = torrent.Files;
+        }
         Log($"Selecting {files.Count}/{torrent.Files.Count} files", torrent);
 
         if (torrent.DownloadAction != TorrentDownloadAction.DownloadManual && torrent.DownloadMinSize > 0)
@@ -242,23 +247,24 @@ public class RealDebridTorrentClient(ILogger<RealDebridTorrentClient> logger, IH
 
         if (files.Count == 0)
         {
-            Log($"Filtered all files out! Downloading ALL files instead!", torrent);
+            Log($"Filtered all files out! Downloading NO files!", torrent);
+			throw new($"No Files Available to Download");
+            files = null;
+        } else {
 
-            files = torrent.Files;
-        }
+			var fileIds = files.Select(m => m.Id.ToString()).ToArray();
 
-        var fileIds = files.Select(m => m.Id.ToString()).ToArray();
+			Log($"Selecting files:");
 
-        Log($"Selecting files:");
+			foreach (var file in files)
+			{
+				Log($"{file.Id}: {file.Path} ({file.Bytes}b)");
+			}
 
-        foreach (var file in files)
-        {
-            Log($"{file.Id}: {file.Path} ({file.Bytes}b)");
-        }
+			Log("", torrent);
 
-        Log("", torrent);
-
-        await GetClient().Torrents.SelectFilesAsync(torrent.RdId!, [.. fileIds]);
+			await GetClient().Torrents.SelectFilesAsync(torrent.RdId!, [.. fileIds]);
+		}
     }
 
     public async Task Delete(String torrentId)

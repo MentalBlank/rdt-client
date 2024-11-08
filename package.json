@@ -9,12 +9,12 @@
   "devDependencies": {},
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rogerfar/rdt-client.git"
+    "url": "git+https://github.com/mentalblank/rdt-client.git"
   },
-  "author": "Roger Far",
+  "author": "MentalBlank",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/rogerfar/rdt-client/issues"
+    "url": "https://github.com/mentalblank/rdt-client/issues"
   },
-  "homepage": "https://github.com/rogerfar/rdt-client#readme"
+  "homepage": "https://github.com/mentalblank/rdt-client#readme"
 }
