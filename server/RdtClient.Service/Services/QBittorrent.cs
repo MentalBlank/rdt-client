@@ -296,7 +296,17 @@ public class QBittorrent(ILogger<QBittorrent> logger, Settings settings, Authent
             }
             else if (torrent.Completed.HasValue)
             {
-                result.State = "pausedUP";
+                var allDownloadsComplete = torrent.Downloads.All(m => m.Completed.HasValue);
+                var hasDownloadsWithErrors = torrent.Downloads.Any(m => m.Error != null);
+
+                if (torrent.Downloads.Count == 0 || hasDownloadsWithErrors || torrent.RdStatus == TorrentStatus.Error)
+                {
+                    result.State = "error";
+                }
+                else if (allDownloadsComplete)
+                {
+                    result.State = "pausedUP";
+                }
             }
             else if (torrent.RdStatus == TorrentStatus.Downloading && torrent.RdSeeders < 1)
             {

@@ -61,8 +61,13 @@ export class TorrentTableComponent implements OnInit {
   }
 
   public sort(property: string): void {
+    if(property === this.sortProperty) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+      return;
+    }
+    
+    this.sortDirection = 'asc';
     this.sortProperty = property;
-    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
   }
 
   public openTorrent(torrentId: string): void {

@@ -40,15 +40,15 @@ public class DbSettingsGeneral
 
     [DisplayName("Maximum parallel downloads")]
     [Description("Maximum amount of torrents that get downloaded to your host at the same time.")]
-    public Int32 DownloadLimit { get; set; } = 2;
+    public Int32 DownloadLimit { get; set; } = 100;
 
     [DisplayName("Maximum unpack processes")]
     [Description("Maximum amount of downloads that get unpacked on your host at the same time.")]
-    public Int32 UnpackLimit { get; set; } = 1;
+    public Int32 UnpackLimit { get; set; } = 100;
 
     [DisplayName("Categories")]
     [Description("Expose these categories through the QBittorrent API. Define multiple categories by separating them with a comma.")]
-    public String? Categories { get; set; } = null;
+    public String? Categories { get; set; } = "radarr,sonarr";
 
     [DisplayName("Run external program on torrent completion")]
     [Description("Path to the executable to run when the torrent and all downloads are finished. No arguments should be passed here.When running in Docker, this command will run on your docker instance!")]
@@ -71,9 +71,18 @@ Supports the following parameters:
     [Description("How to authenticate with the client. WARNING: when set to None anyone with access to the URL can use the client without any credentials.")]
     public AuthenticationType AuthenticationType { get; set; } = AuthenticationType.UserNamePassword;
 
-    [DisplayName("Copy added torrent files")]
-    [Description("When a torrent file or magnet is added, create a copy in this directory.")]
-    public String? CopyAddedTorrents { get; set; } = null;
+    [DisplayName("Seed added torrent files")]
+    [Description("[Only with Symlink Downloader] When a torrent file or magnet is added, create a copy in this directory so that it can be imported by a seed client, symlinks will be present allowing the seed without downloading again.")]
+    public String? CopyAddedTorrents { get; set; } = "/mnt/seed";
+
+    [DisplayName("Keep a copy of .torrent files sent to seed client")]
+    [Description("[Only with Symlink Downloader] When a torrent file is added, keep a copy in RDT_Download_Client_Mapped_Path/TorrentBlachole/ImportCategory directory.")]
+    public Boolean KeepCopyAddedTorrents { get; set; } = false;
+
+    [DisplayName("Trigger Rclone refresh for speed up file discovery")]
+    [Description("Allows users to define a customizable command, such as \"rc vfs/refresh recursive=true --rc-addr=172.17.0.1:5572\", to trigger an Rclone refresh operation before initiating the file discovery process. This feature aims to expedite the discovery by performing an immediate refresh, instead of relying on Rclone's periodic automatic refresh.")]
+    public String? RcloneRefreshCommand { get; set; } = "";
+
 }
 
 public class DbSettingsDownloadClient
@@ -81,15 +90,15 @@ public class DbSettingsDownloadClient
     [DisplayName("Download client")]
     [Description(@"Select which download client to use, see the
 <a href=""https://github.com/rogerfar/rdt-client/"" target=""_blank"">README</a> for the various options.")]
-    public DownloadClient Client { get; set; } = DownloadClient.Internal;
+    public DownloadClient Client { get; set; } = DownloadClient.Symlink;
 
     [DisplayName("Download path")]
     [Description("Path in the docker container to download files to (i.e. /data/downloads), or a local path when using as a service.")]
-    public String DownloadPath { get; set; } = "/data/downloads";
+    public String DownloadPath { get; set; } = "/mnt/symlinks";
 
     [DisplayName("Mapped path")]
     [Description("Path where files are downloaded to on your host (i.e. D:\\Downloads). This path is used for *arr to find your downloads.")]
-    public String MappedPath { get; set; } = @"C:\Downloads";
+    public String MappedPath { get; set; } = @"/mnt/symlinks";
 
     [DisplayName("Download speed (in MB/s) (only used for the Internal Downloader)")]
     [Description("Maximum download speed in Megabytes per second. When set to 0 unlimited speed is used.")]
@@ -97,7 +106,7 @@ public class DbSettingsDownloadClient
 
     [DisplayName("Parallel connections per download (only used for the Internal Downloader)")]
     [Description("Maximum amount of parallel threads that are used to download a single file to your host. If set to 0 no parallel downloading will be done.")]
-    public Int32 ParallelCount { get; set; } = 8;
+    public Int32 ParallelCount { get; set; } = 100;
 
     [DisplayName("Chunk Count")]
     [Description("Split the downloaded file in this amount of chunks.")]
@@ -130,7 +139,7 @@ http://127.0.0.1:6800/jsonrpc.")]
 
     [DisplayName("Rclone mount path (only used for the Symlink Downloader)")]
     [Description("Path where Rclone is mounted. Required for Symlink Downloader. Suffix this path with a * to search subdirectories too.")]
-    public String RcloneMountPath { get; set; } = "/mnt/rd/";
+    public String RcloneMountPath { get; set; } = "/mnt/remote/realdebrid/torrents";
 
     [DisplayName("Log level")]
     [Description("Only set when trying to debug a download client, can generate a lot of logs.")]
@@ -231,7 +240,7 @@ public class DbSettingsDefaults
 
     [DisplayName("Minimum file size to download")]
     [Description("Files that are smaller than this setting are skipped and not downloaded. When set to 0 all files are downloaded. When downloading from Radarr or Sonarr it's recommended to keep this setting at atleast a few MB to avoid the debrid provider having to re-download the torrent.")]
-    public Int32 MinFileSize { get; set; } = 0;
+    public Int32 MinFileSize { get; set; } = 2;
 
     [DisplayName("Include files")]
     [Description("Select only the files that are matching this regular expression. Only use this setting OR the Exclude files setting, not both.")]
@@ -243,7 +252,7 @@ public class DbSettingsDefaults
 
     [DisplayName("Automatic retry torrent")]
     [Description("When a single download has failed multiple times (see setting above) or when the torrent itself received an error it will retry the full torrent this many times before marking it failed.")]
-    public Int32 TorrentRetryAttempts { get; set; } = 1;
+    public Int32 TorrentRetryAttempts { get; set; } = 15;
 
     [DisplayName("Automatic retry downloads")]
     [Description("When a single download fails it will retry it this many times before marking it as failed.")]
@@ -251,7 +260,7 @@ public class DbSettingsDefaults
 
     [DisplayName("Delete download when in error")]
     [Description("When a download has been in error for this many minutes, delete it from the provider and the client. 0 to disable.")]
-    public Int32 DeleteOnError { get; set; } = 0;
+    public Int32 DeleteOnError { get; set; } = 10;
 
     [DisplayName("Torrent maximum lifetime")]
     [Description("The maximum lifetime of a torrent in minutes. When this time has passed, mark the torrent as error. If the torrent is completed and has downloads, the lifetime setting will not apply. 0 to disable.")]

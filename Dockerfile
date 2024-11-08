@@ -12,7 +12,7 @@ RUN apk add --no-cache git python3 py3-pip make g++
 
 RUN \
    echo "**** Cloning Source Code ****" && \
-   git clone https://github.com/rogerfar/rdt-client.git . && \
+   git clone https://github.com/mentalblank/rdt-client.git . && \
    cd client && \
    echo "**** Building Code  ****" && \
    npm ci && \
@@ -32,7 +32,7 @@ WORKDIR /appserver
 
 RUN \
    echo "**** Cloning Source Code ****" && \
-   git clone https://github.com/rogerfar/rdt-client.git . && \
+   git clone https://github.com/mentalblank/rdt-client.git . && \
    echo "**** Building Source Code for $TARGETPLATFORM on $BUILDPLATFORM ****" && \
    cd server && \
    dotnet restore --no-cache RdtClient.sln && dotnet publish --no-restore -c Release -o out ; 
@@ -94,6 +94,7 @@ COPY --from=node-build-env /appclient/root/ /
 
 # ports and volumes
 EXPOSE 6500
+VOLUME [ "/data" ]
 
 # Check Status
 HEALTHCHECK --interval=30s --timeout=30s --start-period=30s --retries=3 CMD curl --fail http://localhost:6500 || exit 
