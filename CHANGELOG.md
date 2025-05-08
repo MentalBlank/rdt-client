@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.112] - 2025-10-05
+### Added
+- TorBox Usenet Support Test Version. [See notes in latest commit description](https://github.com/mentalblank/rdt-client/commits/torbox-usenet-support).
+
 ## [2.0.111] - 2025-05-03
 ### Added
 - Added button to register rdt-client as a handler for magnet links on [supported browsers](https://caniuse.com/mdn-api_navigator_registerprotocolhandler_scheme_parameter_magnet).

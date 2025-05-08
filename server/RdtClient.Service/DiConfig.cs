@@ -33,6 +33,8 @@ public static class DiConfig
         services.AddScoped<RealDebridTorrentClient>();
         services.AddScoped<Settings>();
         services.AddScoped<TorBoxTorrentClient>();
+        services.AddScoped<TorBoxUsenetClient>();
+        services.AddScoped<TorBoxClient>();
         services.AddScoped<Torrents>();
         services.AddScoped<TorrentRunner>();
         services.AddScoped<DebridLinkClient>();

@@ -117,4 +117,10 @@ public static class DownloadHelper
     {
         return String.Concat(path.Split(Path.GetInvalidPathChars()));
     }
+
+    public static String ComputeMd5Hash(byte[] data)
+    {
+        using var md5 = System.Security.Cryptography.MD5.Create();
+        return BitConverter.ToString(md5.ComputeHash(data)).Replace("-", "").ToLowerInvariant();
+    }
 }
