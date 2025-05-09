@@ -83,9 +83,13 @@ public class TorrentsController(ILogger<TorrentsController> logger, Torrents tor
         await fileStream.CopyToAsync(memoryStream);
 
         var bytes = memoryStream.ToArray();
-
+        formData.Torrent.DebridContentKind = Path.GetExtension(file.FileName).ToLowerInvariant() switch
+        {
+            ".nzb" => 2,
+            ".torrent" => 1,
+            _ => throw new InvalidOperationException("Unsupported file type")
+        };
         await torrents.AddFileToDebridQueue(bytes, formData.Torrent);
-
         return Ok();
     }
 
@@ -110,6 +114,19 @@ public class TorrentsController(ILogger<TorrentsController> logger, Torrents tor
 
         logger.LogDebug($"Add magnet");
 
+        if (request.MagnetLink.StartsWith("magnet:?"))
+        {
+            request.Torrent.DebridContentKind = 1;
+        }
+        else if (request.MagnetLink.EndsWith(".nzb", StringComparison.OrdinalIgnoreCase))
+        {
+            request.Torrent.DebridContentKind = 2;
+        }
+        else
+        {
+            return BadRequest("Invalid link format");
+        }
+
         await torrents.AddMagnetToDebridQueue(request.MagnetLink, request.Torrent);
 
         return Ok();
@@ -121,7 +138,7 @@ public class TorrentsController(ILogger<TorrentsController> logger, Torrents tor
     {
         if (file == null || file.Length <= 0)
         {
-            return BadRequest("Invalid torrent file");
+            return BadRequest("Invalid file");
         }
 
         var fileStream = file.OpenReadStream();
@@ -132,11 +149,24 @@ public class TorrentsController(ILogger<TorrentsController> logger, Torrents tor
 
         var bytes = memoryStream.ToArray();
 
-        var torrent = await MonoTorrent.Torrent.LoadAsync(bytes);
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
 
-        var result = await torrents.GetAvailableFiles(torrent.InfoHashes.V1OrV2.ToHex());
-
-        return Ok(result);
+        switch (ext)
+        {
+            case ".torrent":
+            {
+                var torrent = await MonoTorrent.Torrent.LoadAsync(bytes);
+                var result = await torrents.GetAvailableFiles(torrent.InfoHashes.V1OrV2.ToHex());
+                return Ok(result);
+            }
+            case ".nzb":
+            {
+                var result = await torrents.GetAvailableFiles(DownloadHelper.ComputeMd5Hash(bytes));
+                return Ok(result);
+            }
+            default:
+                return BadRequest("Unsupported file type");
+        }
     }
 
     [HttpPost]
@@ -153,11 +183,29 @@ public class TorrentsController(ILogger<TorrentsController> logger, Torrents tor
             return BadRequest("MagnetLink cannot be null or empty");
         }
 
-        var magnet = MagnetLink.Parse(request.MagnetLink);
+        if (request.MagnetLink.StartsWith("magnet:?"))
+        {
+            var magnet = MagnetLink.Parse(request.MagnetLink);
+            var result = await torrents.GetAvailableFiles(magnet.InfoHashes.V1OrV2.ToHex());
+            return Ok(result);
+        }
+        else if (request.MagnetLink.EndsWith(".nzb", StringComparison.OrdinalIgnoreCase))
+        {
+            using var httpClient = new HttpClient();
+            var response = await httpClient.GetAsync(request.MagnetLink);
+            response.EnsureSuccessStatusCode();
 
-        var result = await torrents.GetAvailableFiles(magnet.InfoHashes.V1OrV2.ToHex());
+            await using var memoryStream = new MemoryStream();
+            await response.Content.CopyToAsync(memoryStream);
 
-        return Ok(result);
+            var bytes = memoryStream.ToArray();
+            var result = await torrents.GetAvailableFiles(DownloadHelper.ComputeMd5Hash(bytes));
+            return Ok(result);
+        }
+        else
+        {
+            return BadRequest("Unsupported link format");
+        }
     }
 
     [HttpPost]

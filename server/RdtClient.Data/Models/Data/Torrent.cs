@@ -24,6 +24,8 @@ public class Torrent
     public String? DownloadManualFiles { get; set; }
     public DownloadClient DownloadClient { get; set; }
 
+    public long DebridContentKind { get; set; }
+
     public DateTimeOffset Added { get; set; }
     public DateTimeOffset? FilesSelected { get; set; }
     public DateTimeOffset? Completed { get; set; }
