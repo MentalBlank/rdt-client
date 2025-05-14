@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using TorBoxNET;
@@ -218,6 +219,10 @@ public class TorBoxTorrentClient(ILogger<TorBoxTorrentClient> logger, IHttpClien
                 torrent.RdName = rdTorrent.OriginalFilename;
             }
 
+            var trimRegex = Settings.Get.Integrations.Default.TrimRegex ?? "";
+            var rdNameExtStripped = Regex.Replace(torrent.RdName!, trimRegex, "");
+            torrent.RdName = rdNameExtStripped;
+
             if (rdTorrent.Bytes > 0)
             {
                 torrent.RdSize = rdTorrent.Bytes;
@@ -318,7 +323,7 @@ public class TorBoxTorrentClient(ILogger<TorBoxTorrentClient> logger, IHttpClien
     {
         // FileName is set in GetDownlaadInfos
         Debug.Assert(download.FileName != null);
-        
+
         return Task.FromResult(download.FileName);
     }
 

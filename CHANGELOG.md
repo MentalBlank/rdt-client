@@ -17,9 +17,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed dequeing issue.
 - Fixed logging handler for ProviderUpdater.
 
+### Fork Changes
+- Expanded button to select all options when deleting a torrent to also be present in individual torrent screen.
+- Small changes to initial start up chown actions.
+- Enrichment can now be set to a customisable list, also .torrent files are now enriched.
+
 ## [2.0.111] - 2025-05-03
 ### Added
 - Added button to register rdt-client as a handler for magnet links on [supported browsers](https://caniuse.com/mdn-api_navigator_registerprotocolhandler_scheme_parameter_magnet).
+### Fork Changes
+- Add magnet link enrichment using configurable tracker lists from ngosang/trackerslist
+- Replaced the static magnet handler help text shown when registration is unavailable (due to an insecure context or lack of browser support) with contextual HTML links.
+- Added settings option to allow / disallow the download and extraction of compressed files using symlink downloader.
+- Improved update process where script now dynamically handles update archive filenames, preventing breakage if the file name changes.
+- Updated terminology and replaced references to "*Real-Debrid*" with "*your debrid provider*" (or similar) for broader provider compatibility.
+- Renamed "Real Debrid Client" to "RDTClient" across the project for consistency with package naming and multi-provider support.
+- Enhanced first login instructions in the README, including API token links for all supported providers.
+- Expanded error handling in QBittorrentController.cs by adding support for additional Real-Debrid error codes.
+- Changed torrent table to include sorting chevrons and let it adapt to different screen sizes using responsive fxLayout approach with breakpoints.
+- Updated README formatting and fixed some typos.
+- Updated README-DOCKER formatting, fixed some typos, and included traefik labels.
+- Changed default DB Settings to include various preferences including a default exclude regex
+- Added optional rclone refresh command for the symlink downloader.
+- Added a change to RealDebridTorrentClient to strip some file extentions from torrent.RdName resulting in */torrentname.mkv/torrentname.mkv* becoming */torrentname/torrentname.mkv*
+- Removed some junk from changelog.
+- Shortened "*Received provider error:*" to "*Provider error:*" in TorrentRunner
+- Changed docker build workflow to use github repo name instead of hardcoded "*rdtclient*"
+- Added some additional workflows
+- Replaced referral links
 
 ## [2.0.110] - 2025-04-24
 ### Fixed
@@ -828,12 +853,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2020-05-16
 ### Changed
 - Small bug fixes
-
-### Changed
-- test
-
-### Removed
-- nothing
 
 ## [1.0.0] - 2020-04-11
 ### Added

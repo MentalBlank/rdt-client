@@ -38,6 +38,8 @@ public static class DiConfig
         services.AddScoped<DebridLinkClient>();
 
         services.AddSingleton<IDownloadableFileFilter, DownloadableFileFilter>();
+        services.AddSingleton<ITrackerListGrabber, TrackerListGrabber>();
+        services.AddSingleton<IEnricher, Enricher>();
 
         services.AddSingleton<IAuthorizationHandler, AuthSettingHandler>();
 

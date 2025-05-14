@@ -33,13 +33,13 @@
     #>
 param(
     [string]$Version = "",
-    [string]$DockerAccount = "rogerfar",
+    [string]$DockerAccount = "mentalblank",
     [string]$Platforms = "linux/arm64/v8,linux/amd64",
     [string]$Dockerfile = "Dockerfile",
     [switch]$SkipPush,
     [switch]$SkipCache,
     [switch]$OutputToDocker,
-    [string]$BuildProgress="auto"
+    [string]$BuildProgress = "auto"
 )
 
 $imageName = "$($DockerAccount)/rdtclient"
@@ -59,7 +59,7 @@ if ($OutputToDocker.IsPresent) {
 }
 
 if ([string]::IsNullOrEmpty($Version)) { 
-	$Version = (Get-Content "package.json" | ConvertFrom-Json).version
+    $Version = (Get-Content "package.json" | ConvertFrom-Json).version
 }
 
 $dockerArgs += @("--tag", "$($imageName):$($Version)" )

@@ -20,18 +20,20 @@ class Mocks
     public readonly Mock<ILogger<TorrentsService>> TorrentsLoggerMock;
     public readonly Mock<IDownloads> DownloadsMock;
     public readonly Mock<ITorrentData> TorrentDataMock;
+    public readonly Mock<IEnricher> EnricherMock;
 
     public Mocks()
     {
-        TorrentDataMock = new();
-        DownloadsMock = new();
+        TorrentDataMock = new Mock<ITorrentData>();
+        DownloadsMock = new Mock<IDownloads>();
+        EnricherMock = new Mock<IEnricher>();
 
-        TorrentsLoggerMock = new();
+        TorrentsLoggerMock = new Mock<ILogger<TorrentsService>>();
 
-        ProcessMock = new();
+        ProcessMock = new Mock<IProcess>();
         ProcessStartInfo startInfo = new();
         ProcessMock.SetupProperty(p => p.StartInfo, startInfo);
-        ProcessFactoryMock = new();
+        ProcessFactoryMock = new Mock<IProcessFactory>();
         ProcessFactoryMock.Setup(p => p.NewProcess()).Returns(ProcessMock.Object);
     }
 }
@@ -58,11 +60,10 @@ public class TorrentsTest
             }
         ];
 
-        return new ()
+        return new TheoryData<Torrent, List<Download>>
         {
             {
-              torrent,
-              downloads
+                torrent, downloads
             }
         };
     }
@@ -74,7 +75,7 @@ public class TorrentsTest
         // Arrange
         var settings = new DbSettings
         {
-            General = new()
+            General = new DbSettingsGeneral
             {
                 RunOnTorrentCompleteFileName = "/bin/echo",
                 RunOnTorrentCompleteArguments = "%N %L %F %R %D %C %Z %I"
@@ -93,7 +94,7 @@ public class TorrentsTest
         var fileSystemMock = new MockFileSystem(new Dictionary<String, MockFileData>
         {
             {
-                filePath, new("Test file")
+                filePath, new MockFileData("Test file")
             },
         });
 
@@ -102,6 +103,7 @@ public class TorrentsTest
                                            mocks.DownloadsMock.Object,
                                            mocks.ProcessFactoryMock.Object,
                                            fileSystemMock,
+                                           mocks.EnricherMock.Object,
                                            null!, // Torrent Clients are not used by `RunTorrentComplete`, this is fine
                                            null!,
                                            null!,
@@ -140,7 +142,7 @@ public class TorrentsTest
         // Arrange
         var settings = new DbSettings
         {
-            General = new()
+            General = new DbSettingsGeneral
             {
                 RunOnTorrentCompleteFileName = null
             }
@@ -158,7 +160,7 @@ public class TorrentsTest
         var fileSystemMock = new MockFileSystem(new Dictionary<String, MockFileData>
         {
             {
-                filePath, new("Test file")
+                filePath, new MockFileData("Test file")
             },
         });
 
@@ -167,6 +169,7 @@ public class TorrentsTest
                                            mocks.DownloadsMock.Object,
                                            mocks.ProcessFactoryMock.Object,
                                            fileSystemMock,
+                                           mocks.EnricherMock.Object,
                                            null!, // Torrent Clients are not used by `RunTorrentComplete`, this is fine
                                            null!,
                                            null!,
@@ -187,7 +190,7 @@ public class TorrentsTest
         // Arrange
         var settings = new DbSettings
         {
-            General = new()
+            General = new DbSettingsGeneral
             {
                 RunOnTorrentCompleteFileName = "/bin/echo"
             }
@@ -205,7 +208,7 @@ public class TorrentsTest
         var fileSystemMock = new MockFileSystem(new Dictionary<String, MockFileData>
         {
             {
-                filePath, new("Test file")
+                filePath, new MockFileData("Test file")
             },
         });
 
@@ -214,6 +217,7 @@ public class TorrentsTest
                                            mocks.DownloadsMock.Object,
                                            mocks.ProcessFactoryMock.Object,
                                            fileSystemMock,
+                                           mocks.EnricherMock.Object,
                                            null!, // Torrent Clients are not used by `RunTorrentComplete`, this is fine
                                            null!,
                                            null!,
@@ -253,7 +257,7 @@ public class TorrentsTest
         // Arrange
         var settings = new DbSettings
         {
-            General = new()
+            General = new DbSettingsGeneral
             {
                 RunOnTorrentCompleteFileName = "/bin/echo"
             }
@@ -271,7 +275,7 @@ public class TorrentsTest
         var fileSystemMock = new MockFileSystem(new Dictionary<String, MockFileData>
         {
             {
-                filePath, new("Test file")
+                filePath, new MockFileData("Test file")
             },
         });
 
@@ -280,6 +284,7 @@ public class TorrentsTest
                                            mocks.DownloadsMock.Object,
                                            mocks.ProcessFactoryMock.Object,
                                            fileSystemMock,
+                                           mocks.EnricherMock.Object,
                                            null!, // Torrent Clients are not used by `RunTorrentComplete`, this is fine
                                            null!,
                                            null!,

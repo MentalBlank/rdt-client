@@ -52,13 +52,13 @@ jobs:
 
       - name: Create ZIP
         shell: pwsh
-        run: Compress-Archive -Path publish\* -DestinationPath RealDebridClient.zip
+        run: Compress-Archive -Path publish\* -DestinationPath RDTClient.zip
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with: 
-          name: RealDebridClient.zip
-          path: RealDebridClient.zip
+          name: RDTClient.zip
+          path: RDTClient.zip
 
   release:
     name: Create GitHub release
@@ -85,7 +85,7 @@ jobs:
       - name: Download Artifact
         uses: actions/download-artifact@v4
         with:
-          name: RealDebridClient.zip
+          name: RDTClient.zip
           
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -95,5 +95,5 @@ jobs:
           body: ${{ steps.query-release-info.outputs.release-notes }}
           draft: false
           prerelease: false
-          files: RealDebridClient.zip
+          files: RDTClient.zip
           token: ${{ secrets.GITHUB_TOKEN }}

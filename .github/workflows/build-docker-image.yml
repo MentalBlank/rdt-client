@@ -9,7 +9,7 @@ permissions:
   packages: write
 
 env:
-  APP_NAME: rdtclient
+  APP_NAME: ${{ github.event.repository.name }}
   DOCKER_FILE: ./Dockerfile
   ENABLE_DOCKERHUB: 1
   ENABLE_GHCR: 1

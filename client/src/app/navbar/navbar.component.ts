@@ -35,10 +35,10 @@ export class NavbarComponent implements OnInit {
 
       switch (result.provider) {
         case 'RealDebrid':
-          this.providerLink = 'https://real-debrid.com/?id=1348683';
+          this.providerLink = 'https://real-debrid.com/';
           break;
         case 'AllDebrid':
-          this.providerLink = 'https://alldebrid.com/?uid=2v91l&lang=en';
+          this.providerLink = 'https://alldebrid.com/';
           break;
         case 'Premiumize':
           this.providerLink = 'https://www.premiumize.me/';

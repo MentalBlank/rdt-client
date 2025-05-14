@@ -1,7 +1,8 @@
 ﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using DebridLinkFrNET; 
+using DebridLinkFrNET;
 using RdtClient.Data.Enums;
 using RdtClient.Data.Models.TorrentClient;
 using RdtClient.Service.Helpers;
@@ -50,7 +51,7 @@ public class DebridLinkClient(ILogger<DebridLinkClient> logger, IHttpClientFacto
         {
             logger.LogError(ex, $"The connection to DebridLink has timed out: {ex.Message}");
 
-            throw; 
+            throw;
         }
     }
 
@@ -110,7 +111,7 @@ public class DebridLinkClient(ILogger<DebridLinkClient> logger, IHttpClientFacto
     public async Task<TorrentClientUser> GetUser()
     {
         var user = await GetClient().Account.Infos();
-            
+
         return new()
         {
             Username = user.Username,
@@ -173,6 +174,10 @@ public class DebridLinkClient(ILogger<DebridLinkClient> logger, IHttpClientFacto
             {
                 torrent.RdName = rdTorrent.OriginalFilename;
             }
+
+            var trimRegex = Settings.Get.Integrations.Default.TrimRegex ?? "";
+            var rdNameExtStripped = Regex.Replace(torrent.RdName!, trimRegex, "");
+            torrent.RdName = rdNameExtStripped;
 
             if (rdTorrent.Bytes > 0)
             {
@@ -282,7 +287,7 @@ public class DebridLinkClient(ILogger<DebridLinkClient> logger, IHttpClientFacto
     {
         // FileName is set in GetDownlaadInfos
         Debug.Assert(download.FileName != null);
-        
+
         return Task.FromResult(download.FileName);
     }
 

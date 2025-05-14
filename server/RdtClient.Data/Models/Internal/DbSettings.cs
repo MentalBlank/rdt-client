@@ -1,8 +1,6 @@
 ﻿using RdtClient.Data.Enums;
 using System.ComponentModel;
 
-// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
-
 namespace RdtClient.Data.Models.Internal;
 
 public class DbSettings
@@ -40,15 +38,15 @@ public class DbSettingsGeneral
 
     [DisplayName("Maximum parallel downloads")]
     [Description("Maximum amount of torrents that get downloaded to your host at the same time.")]
-    public Int32 DownloadLimit { get; set; } = 2;
+    public Int32 DownloadLimit { get; set; } = 100;
 
     [DisplayName("Maximum unpack processes")]
     [Description("Maximum amount of downloads that get unpacked on your host at the same time. Set to 0 to disable unpacking.")]
-    public Int32 UnpackLimit { get; set; } = 1;
+    public Int32 UnpackLimit { get; set; } = 0;
 
     [DisplayName("Categories")]
     [Description("Expose these categories through the QBittorrent API. Define multiple categories by separating them with a comma.")]
-    public String? Categories { get; set; } = null;
+    public String? Categories { get; set; } = "radarr,sonarr,manual";
 
     [DisplayName("Run external program on torrent completion")]
     [Description("Path to the executable to run when the torrent and all downloads are finished. No arguments should be passed here.When running in Docker, this command will run on your docker instance!")]
@@ -73,8 +71,16 @@ Supports the following parameters:
 
     [DisplayName("Copy added torrent files")]
     [Description("When a torrent file or magnet is added, create a copy in this directory.")]
-    public String? CopyAddedTorrents { get; set; } = null;
-    
+    public String? CopyAddedTorrents { get; set; } = "/mnt/seed";
+
+    [DisplayName("RClone custom command ")]
+    [Description("Allows users to define a command, such as \"rc vfs/refresh recursive=true --rc-addr=172.17.0.1:5572\", to trigger an RClone refresh operation before initiating the file discovery process.")]
+    public String? RcloneRefreshCommand { get; set; } = "";
+
+    [DisplayName("Tracker enrichment list")]
+    [Description("Optional. Specify the URL of a tracker list file to be appended to magnet links and torrent files.")]
+    public String? MagnetTrackerEnrichment { get; set; } = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt";
+
     [DisplayName("Disable update notifications")]
     [Description("Ignore update notifications. You will still be notified if the version you are running has a security vulnerability.")]
     public Boolean DisableUpdateNotifications { get; set; } = false;
@@ -84,16 +90,16 @@ public class DbSettingsDownloadClient
 {
     [DisplayName("Download client")]
     [Description(@"Select which download client to use, see the
-<a href=""https://github.com/rogerfar/rdt-client/"" target=""_blank"">README</a> for the various options.")]
+<a href=""https://github.com/mentalblank/rdt-client/"" target=""_blank"">README</a> for the various options.")]
     public DownloadClient Client { get; set; } = DownloadClient.Internal;
 
     [DisplayName("Download path")]
     [Description("Path in the docker container to download files to (i.e. /data/downloads), or a local path when using as a service.")]
-    public String DownloadPath { get; set; } = "/data/downloads";
+    public String DownloadPath { get; set; } = "/mnt/symlinks";
 
     [DisplayName("Mapped path")]
     [Description("Path where files are downloaded to on your host (i.e. D:\\Downloads). This path is used for *arr to find your downloads.")]
-    public String MappedPath { get; set; } = @"C:\Downloads";
+    public String MappedPath { get; set; } = "/mnt/symlinks";
 
     [DisplayName("Download speed (in MB/s) (only used for the Internal Downloader)")]
     [Description("Maximum download speed in Megabytes per second. When set to 0 unlimited speed is used.")]
@@ -101,7 +107,7 @@ public class DbSettingsDownloadClient
 
     [DisplayName("Parallel connections per download (only used for the Internal Downloader)")]
     [Description("Maximum amount of parallel threads that are used to download a single file to your host. If set to 0 no parallel downloading will be done.")]
-    public Int32 ParallelCount { get; set; } = 8;
+    public Int32 ParallelCount { get; set; } = 100;
 
     [DisplayName("Chunk Count")]
     [Description("Split the downloaded file in this amount of chunks.")]
@@ -134,7 +140,7 @@ http://127.0.0.1:6800/jsonrpc.")]
 
     [DisplayName("Rclone mount path (only used for the Symlink Downloader)")]
     [Description("Path where Rclone is mounted. Required for Symlink Downloader. Suffix this path with a * to search subdirectories too.")]
-    public String RcloneMountPath { get; set; } = "/mnt/rd/";
+    public String RcloneMountPath { get; set; } = "/mnt/remote/realdebrid/torrents/*";
 
     [DisplayName("Synology DownloadStation URL")]
     [Description("The URL to the Synology DownloadStation. A common URL is http://127.0.0.1:5000")]
@@ -160,8 +166,8 @@ public class DbSettingsProvider
 {
     [DisplayName("Provider")]
     [Description(@"The following 4 providers are supported:
-<a href=""https://real-debrid.com/?id=1348683"" target=""_blank"" rel=""noopener"">https://real-debrid.com</a>
-<a href=""https://alldebrid.com/?uid=2v91l&lang=en"" target=""_blank"" rel=""noopener"">https://alldebrid.com</a>
+<a href=""https://real-debrid.com/"" target=""_blank"" rel=""noopener"">https://real-debrid.com</a>
+<a href=""https://alldebrid.com/"" target=""_blank"" rel=""noopener"">https://alldebrid.com</a>
 <a href=""https://www.premiumize.me/"" target=""_blank"" rel=""noopener"">https://www.premiumize.me/</a>
 <a href=""https://debrid-link.com/"" target=""_blank"" rel=""noopener"">https://debrid-link.com/</a>
 <a href=""https://torbox.app/"" target=""_blank"" rel=""noopener"">https://torbox.app/</a>
@@ -181,15 +187,12 @@ or
 <a href=""https://debrid-link.com/webapp/apikey"" target=""_blank"" rel=""noopener"">https://debrid-link.com/webapp/apikey</a>")]
     public String ApiKey { get; set; } = "";
 
-    /// <summary>
-    /// API hostname to use <b>for Real Debrid only</b> 
-    /// </summary>
     [DisplayName("API Hostname (RD only)")]
     [Description("Use this instead of the normal hostname for Real Debrid API requests. Only used by Real Debrid. Leave blank to use default.")]
     public String? ApiHostname { get; set; }
 
     [DisplayName("Automatically import and process torrents added to provider")]
-    [Description("When selected, import downloads that are not added through RealDebridClient but have been directly added to your debrid provider.")]
+    [Description("When selected, import downloads that are not added through RDTClient but have been directly added to your debrid provider.")]
     public Boolean AutoImport { get; set; } = false;
 
     [DisplayName("Automatically delete downloads removed from provider")]
@@ -266,12 +269,16 @@ public class DbSettingsDefaultsWithCategory : DbSettingsDefaults
 public class DbSettingsDefaults
 {
     [DisplayName("Only download available files on debrid provider")]
-    [Description("When selected, it will only download files in the torrent that have been download by Real-Debrid. You can use this in combination with the Min File size setting above.")]
+    [Description("When selected, it will only download files in the torrent that have been download by your debrid provider. You can use this in combination with the Min File size setting above.")]
     public Boolean OnlyDownloadAvailableFiles { get; set; } = true;
+
+    [DisplayName("[Symlink Only] Allow download of compressed files")]
+    [Description("When selected and using the symlink downloader, it will allow the download of compressed files from your debrid provider.")]
+    public Boolean DownloadCompressedSymlink { get; set; } = true;
 
     [DisplayName("Minimum file size to download")]
     [Description("Files that are smaller than this setting are skipped and not downloaded. When set to 0 all files are downloaded. When downloading from Radarr or Sonarr it's recommended to keep this setting at atleast a few MB to avoid the debrid provider having to re-download the torrent.")]
-    public Int32 MinFileSize { get; set; } = 0;
+    public Int32 MinFileSize { get; set; } = 2;
 
     [DisplayName("Include files")]
     [Description("Select only the files that are matching this regular expression. Only use this setting OR the Exclude files setting, not both.")]
@@ -279,11 +286,15 @@ public class DbSettingsDefaults
 
     [DisplayName("Exclude files")]
     [Description("Ignore files that are matching this regular expression. Only use this setting OR the Include files setting, not both.")]
-    public String? ExcludeRegex { get; set; }
+    public String? ExcludeRegex { get; set; } = @"(?i)^.*\.(xml|ac3|sql|docx|arj|lzh|tar|gz|bat|bmp|cmd|cue|db|diz|dll|((dvd)?disc|par(t)?|py)\d*|exe|flac|gif|htm(l)?|ico(n)?|idx|info|ini|index|jp(e)?g|l(i)?nk|md5|m2ts|mp3|nfo|nzb|png|rar|readme|reg|sample|sfv|sql|srr|sub|srt|tag|tak|t(e)?xt|thumb|torrent|ts|url|vbs|webp|zip|zsh|padding_file|smallfile|_unpack|ade|adp|app|application|appref-ms|asp|aspx|asx|bas|bgi|cab|cer|chm|cmd|cnt|com|cpl|crt|csh|der|diagcab|fxp|gadget|grp|hlp|hpj|hta|htc|inf|ins|iso|isp|its|jar|jnlp|js|jse|ksh|lnk|mad|maf|mag|mam|maq|mar|mas|mat|mau|mav|maw|mcf|mda|mdb|mde|mdt|mdw|mdz|msc|msh|msh1|msh2|mshxml|msh1xml|msh2xml|msi|msp|mst|msu|ops|osd|pcd|pif|pl|plg|prf|prg|printerexport|ps1|ps1xml|ps2|ps2xml|psc1|psc2|psd1|psdm1|pst|py|pyc|pyo|pyw|pyz|pyzw|reg|scf|scr|sct|shb|shs|theme|tmp|vb|vbe|vbp|vbs|vhd|vhdx|vsmacros|vsw|webpnp|website|ws|wsc|wsf|wsh|xbap|xll|xnk|7z|bdjo|bdmv|bin|cci|clpi|crl|idx|m4a|mpls|msi|pdf|sig|tbl|xig|xrt|zipx)$";
+
+    [DisplayName("Trim file extentions from folder name")]
+    [Description("Removes defined file extentions from downloaded folder names")]
+    public String? TrimRegex { get; set; } = @"(?i)\.(mkv|mp4|avi|m2ts|mov|wmv|asf|mpegts|ts|3gpp|flv|mpeg|wtv|webm|m4v|3gp|vob|ogv|rm|rmvb|divx|xvid|f4v|mts|mxf)$";
 
     [DisplayName("Automatic retry torrent")]
     [Description("When a single download has failed multiple times (see setting above) or when the torrent itself received an error it will retry the full torrent this many times before marking it failed.")]
-    public Int32 TorrentRetryAttempts { get; set; } = 1;
+    public Int32 TorrentRetryAttempts { get; set; } = 15;
 
     [DisplayName("Automatic retry downloads")]
     [Description("When a single download fails it will retry it this many times before marking it as failed.")]
@@ -291,7 +302,7 @@ public class DbSettingsDefaults
 
     [DisplayName("Delete download when in error")]
     [Description("When a download has been in error for this many minutes, delete it from the provider and the client. 0 to disable.")]
-    public Int32 DeleteOnError { get; set; } = 0;
+    public Int32 DeleteOnError { get; set; } = 10;
 
     [DisplayName("Torrent maximum lifetime")]
     [Description("The maximum lifetime of a torrent in minutes. When this time has passed, mark the torrent as error. If the torrent is completed and has downloads, the lifetime setting will not apply. 0 to disable.")]

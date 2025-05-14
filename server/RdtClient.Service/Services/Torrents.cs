@@ -24,6 +24,7 @@ public class Torrents(
     IDownloads downloads,
     IProcessFactory processFactory,
     IFileSystem fileSystem,
+    IEnricher enricher,
     AllDebridTorrentClient allDebridTorrentClient,
     PremiumizeTorrentClient premiumizeTorrentClient,
     RealDebridTorrentClient realDebridTorrentClient,
@@ -48,7 +49,7 @@ public class Torrents(
                 Provider.AllDebrid => allDebridTorrentClient,
                 Provider.DebridLink => debridLinkClient,
                 Provider.TorBox => torBoxTorrentClient,
-                _ => throw new("Invalid Provider")
+                _ => throw new Exception("Invalid Provider")
             };
         }
     }
@@ -109,27 +110,25 @@ public class Torrents(
 
     public async Task<Torrent> AddMagnetToDebridQueue(String magnetLink, Torrent torrent)
     {
+        var enriched = await enricher.EnrichMagnetLink(magnetLink);
         MagnetLink magnet;
-
         try
         {
-            magnet = MagnetLink.Parse(magnetLink);
+            magnet = MagnetLink.Parse(enriched);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "{ex.Message}, trying to parse {magnetLink}", ex.Message, magnetLink);
-            throw new($"{ex.Message}, trying to parse {magnetLink}");
+            logger.LogError(ex, "{ex.Message}, trying to parse {enriched}", ex.Message, enriched);
+            throw new Exception($"{ex.Message}, trying to parse {enriched}");
         }
 
         torrent.RdStatus = TorrentStatus.Queued;
         torrent.RdName = magnet.Name;
 
         var hash = magnet.InfoHashes.V1OrV2.ToHex();
-
-        var newTorrent = await AddQueued(hash, magnetLink, false, torrent);
+        var newTorrent = await AddQueued(hash, enriched, false, torrent);
 
         Log($"Adding {hash} (magnet link) to queue", newTorrent);
-
         await CopyAddedTorrent(magnet.Name!, magnetLink);
 
         return newTorrent;
@@ -142,13 +141,16 @@ public class Torrents(
         var fileAsBase64 = Convert.ToBase64String(bytes);
         logger.LogDebug($"bytes {bytes}");
 
+        var enriched = await enricher.EnrichTorrentBytes(bytes);
+        logger.LogDebug($"enriched bytes {enriched}");
+
         try
         {
-            monoTorrent = await MonoTorrent.Torrent.LoadAsync(bytes);
+            monoTorrent = await MonoTorrent.Torrent.LoadAsync(enriched);
         }
         catch (Exception ex)
         {
-            throw new($"{ex.Message}, trying to parse {fileAsBase64}");
+            throw new Exception($"{ex.Message}, trying to parse {fileAsBase64}");
         }
 
         torrent.RdStatus = TorrentStatus.Queued;
@@ -217,14 +219,14 @@ public class Torrents(
     {
         if (torrent.RdId != null)
         {
-            throw new("Torrent already added to debrid provider, cannot dequeue");
+            throw new Exception("Torrent already added to debrid provider, cannot dequeue");
         }
 
         if (torrent.FileOrMagnet == null)
         {
-            throw new("Torrent has no torrent file or magnet link");
+            throw new Exception("Torrent has no torrent file or magnet link");
         }
-        
+
         logger.LogDebug("Adding {hash} to debrid provider {torrentInfo}", torrent.Hash, torrent.ToLog());
 
         await RealDebridUpdateLock.WaitAsync();
@@ -376,7 +378,7 @@ public class Torrents(
 
         if (deleteData)
         {
-            Log($"Deleting RdtClient data", torrent);
+            Log($"Deleting data", torrent);
 
             await downloads.DeleteForTorrent(torrent.TorrentId);
             await torrentData.Delete(torrentId);
@@ -384,7 +386,7 @@ public class Torrents(
 
         if (deleteRdTorrent && torrent.RdId != null)
         {
-            Log($"Deleting RealDebrid Torrent", torrent);
+            Log($"Deleting torrent", torrent);
 
             try
             {
@@ -433,9 +435,9 @@ public class Torrents(
 
     public async Task<String> UnrestrictLink(Guid downloadId)
     {
-        var download = await downloads.GetById(downloadId) ?? throw new($"Download with ID {downloadId} not found");
+        var download = await downloads.GetById(downloadId) ?? throw new Exception($"Download with ID {downloadId} not found");
 
-        Log($"Unrestricting link", download, download.Torrent);
+        Log("Unrestricting link", download, download.Torrent);
 
         var unrestrictedLink = await TorrentClient.Unrestrict(download.Path);
 
@@ -450,7 +452,7 @@ public class Torrents(
     /// </summary>
     public async Task<String> RetrieveFileName(Guid downloadId)
     {
-        var download = await downloads.GetById(downloadId) ?? throw new($"Download with ID {downloadId} not found");
+        var download = await downloads.GetById(downloadId) ?? throw new Exception($"Download with ID {downloadId} not found");
 
         Log($"Retrieving filename for", download, download.Torrent);
 
@@ -590,7 +592,7 @@ public class Torrents(
 
             if (String.IsNullOrWhiteSpace(torrent.FileOrMagnet))
             {
-                throw new($"Cannot re-add this torrent, original magnet or file not found");
+                throw new Exception($"Cannot re-add this torrent, original magnet or file not found");
             }
 
             Torrent newTorrent;
@@ -767,7 +769,7 @@ public class Torrents(
             return;
         }
 
-        var torrent = await torrentData.GetById(torrentId) ?? throw new($"Cannot find Torrent with ID {torrentId}");
+        var torrent = await torrentData.GetById(torrentId) ?? throw new Exception($"Cannot find Torrent with ID {torrentId}");
 
         var downloadsForTorrent = await downloads.GetForTorrent(torrentId);
 

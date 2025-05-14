@@ -92,7 +92,7 @@
                 Download all files above a certain size
               }
               @case (1) {
-                Download all available files on Real-Debrid above a certain size
+                Download all available files on Torrent above a certain size
               }
               @case (2) {
                 Pick files I want to download
@@ -106,10 +106,10 @@
                 Do nothing
               }
               @case (1) {
-                Remove torrent from Real-Debrid and Real-Debrid Client
+                Remove torrent from Torrent and Torrent Client
               }
               @case (2) {
-                Remove torrent from Real-Debrid
+                Remove torrent from Torrent
               }
               @case (3) {
                 Remove torrent from client
@@ -168,31 +168,31 @@
         </div>
         <div style="flex: 1 1 0">
           <div class="field">
-            <label class="label">Real-Debrid ID</label>
+            <label class="label">Torrent ID</label>
             {{ torrent.rdId }}
           </div>
           <div class="field">
-            <label class="label">Real-Debrid Name</label>
+            <label class="label">Torrent Name</label>
             {{ torrent.rdName }}
           </div>
           <div class="field">
-            <label class="label">Real-Debrid Size</label>
+            <label class="label">Torrent Size</label>
             {{ torrent.rdSize | filesize }}
           </div>
           <div class="field">
-            <label class="label">Real-Debrid Host</label>
+            <label class="label">Torrent Host</label>
             {{ torrent.rdHost }}
           </div>
           <div class="field">
-            <label class="label">Real-Debrid Split</label>
+            <label class="label">Torrent Split</label>
             {{ torrent.rdSplit }}
           </div>
           <div class="field">
-            <label class="label">Real-Debrid Progress</label>
+            <label class="label">Torrent Progress</label>
             {{ torrent.rdProgress || 0 }}%
           </div>
           <div class="field">
-            <label class="label">Real-Debrid Status</label>
+            <label class="label">Torrent Status</label>
             @switch (torrent.rdStatus) {
               @case (0) {
                 Processing
@@ -213,19 +213,19 @@
             ({{ torrent.rdStatusRaw }})
           </div>
           <div class="field">
-            <label class="label">Real-Debrid Added</label>
+            <label class="label">Torrent Added</label>
             {{ torrent.rdAdded | date: "fullDate" }} {{ torrent.rdAdded | date: "mediumTime" }}
           </div>
           <div class="field">
-            <label class="label">Real-Debrid Ended</label>
+            <label class="label">Torrent Ended</label>
             {{ torrent.rdEnded | date: "fullDate" }} {{ torrent.rdEnded | date: "mediumTime" }}
           </div>
           <div class="field">
-            <label class="label">Real-Debrid Speed</label>
+            <label class="label">Torrent Speed</label>
             {{ torrent.rdSpeed || 0 }}
           </div>
           <div class="field">
-            <label class="label">Real-Debrid Seeders</label>
+            <label class="label">Torrent Seeders</label>
             {{ torrent.rdSeeders || "0" }}
           </div>
         </div>
@@ -327,13 +327,13 @@
                             </div>
                           }
                           <div class="field">
-                            <label class="label">Real-Debrid Unrestricted Link</label>
+                            <label class="label">Torrent Unrestricted Link</label>
                             @if (download.link) {
                               <a href="{{ download.link }}" target="_blank"> {{ download.link | decodeURI }}</a>
                             }
                           </div>
                           <div class="field">
-                            <label class="label">Real-Debrid Link</label>
+                            <label class="label">Torrent Link</label>
                             {{ download.path }}
                           </div>
                           <div class="field">
@@ -446,23 +446,29 @@
         <label class="label"></label>
         <div class="control">
           <label class="checkbox">
-            <input type="checkbox" [(ngModel)]="deleteData" />
+            <input type="checkbox" [(ngModel)]="deleteData" (change)="updateDeleteSelectAll()" />
             Delete Torrent from client
           </label>
           <br />
           <label class="checkbox">
-            <input type="checkbox" [(ngModel)]="deleteRdTorrent" />
+            <input type="checkbox" [(ngModel)]="deleteRdTorrent" (change)="updateDeleteSelectAll()" />
             Delete Torrent from provider
           </label>
           <br />
           <label class="checkbox">
-            <input type="checkbox" [(ngModel)]="deleteLocalFiles" />
+            <input type="checkbox" [(ngModel)]="deleteLocalFiles" (change)="updateDeleteSelectAll()" />
             Delete local files
+          </label>
+          <br />
+          <br />
+          <label class="checkbox">
+            <input type="checkbox" [(ngModel)]="deleteSelectAll" (change)="toggleDeleteSelectAllOptions()" />
+            Select all
           </label>
         </div>
       </div>
       <div class="notification is-primary">
-        Deleting a torrent from Real-Debrid will automatically delete it here too.
+        Deleting a torrent from your debrid provider will automatically delete it here too.
       </div>
       @if (deleteError?.length > 0) {
         <div class="notification is-danger is-light">Error deleting torrent: {{ deleteError }}</div>
@@ -494,8 +500,7 @@
     <section class="modal-card-body">
       <p>Are you sure you want to retry this torrent?</p>
       <p>
-        This action will delete all the torrent data + all local downloads. Then it will re-add the original magnet link
-        or torrent file to Real-Debrid.
+        This action will delete all the torrent data + all local downloads. Then it will re-add the original magnet link or torrent file to your debrid provider.
       </p>
       @if (retryError?.length > 0) {
         <div class="notification is-danger is-light">Error retrying torrent: {{ retryError }}</div>
@@ -526,7 +531,7 @@
     </header>
     <section class="modal-card-body">
       <p>Are you sure you want to retry this download?</p>
-      <p>This action will remove the local download and re-download the file from Real-Debrid.</p>
+      <p>This action will remove the local download and re-download the file from your debrid provider.</p>
       @if (downloadRetryError?.length > 0) {
         <div class="notification is-danger is-light">Error retrying download: {{ downloadRetryError }}</div>
       }
@@ -589,8 +594,7 @@
           </select>
         </div>
         <p class="help">
-          When a torrent is finished downloading on the provider, perform this action. Use this setting if you only want
-          to add files to Real-Debrid but not download them to the host.
+          When a torrent is finished downloading on the provider, perform this action. Use this setting if you only want to add files to your debrid provider but not download them to the host.
         </p>
       </div>
       <div class="field">

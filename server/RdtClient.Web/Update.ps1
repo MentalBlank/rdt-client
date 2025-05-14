@@ -2,20 +2,19 @@
 
 Write-Host "Starting update script in $currentDirectory"
 
-If (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))
-{   
+If (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {   
     $arguments = "& '" + $myinvocation.mycommand.definition + "'"
     Start-Process powershell -Verb runAs -ArgumentList $arguments
     Break
 }
 
-Write-Host "Stopping ReadDebridClient..."
+Write-Host "Stopping RDTClient..."
 
 Stop-Service RealDebridClient
 
-Write-Host "Stopped ReadDebridClient"
+Write-Host "Stopped RDTClient"
 
-$releasesUri = "https://api.github.com/repos/rogerfar/rdt-client/releases/latest"
+$releasesUri = "https://api.github.com/repos/mentalblank/rdt-client/releases/latest"
 $downloadUri = ((Invoke-RestMethod -Method GET -Uri $releasesUri).assets | Where-Object name -like "*.zip").browser_download_url
 
 Write-Host "Downloading $downloadUri"
@@ -44,8 +43,8 @@ Remove-Item -Path $tempExtract -Force -Recurse -ErrorAction SilentlyContinue
 
 Remove-Item $pathZip -Force
 
-Write-Host "Starting ReadDebridClient..."
+Write-Host "Starting RDTClient..."
 
 Start-Service RealDebridClient
 
-Write-Host "Started ReadDebridClient"
+Write-Host "Started RDTClient"

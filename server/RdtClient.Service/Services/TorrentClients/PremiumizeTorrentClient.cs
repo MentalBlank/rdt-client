@@ -6,6 +6,7 @@ using RdtClient.Data.Enums;
 using RdtClient.Data.Models.TorrentClient;
 using RdtClient.Service.Helpers;
 using RdtClient.Data.Models.Data;
+using System.Text.RegularExpressions;
 using Torrent = RdtClient.Data.Models.Data.Torrent;
 
 namespace RdtClient.Service.Services.TorrentClients;
@@ -40,7 +41,7 @@ public class PremiumizeTorrentClient(ILogger<PremiumizeTorrentClient> logger, IH
         {
             logger.LogError(ex, $"The connection to Premiumize has timed out: {ex.Message}");
 
-            throw; 
+            throw;
         }
     }
 
@@ -156,6 +157,10 @@ public class PremiumizeTorrentClient(ILogger<PremiumizeTorrentClient> logger, IH
                 torrent.RdName = torrentClientTorrent.Filename;
             }
 
+            var trimRegex = Settings.Get.Integrations.Default.TrimRegex ?? "";
+            var rdNameExtStripped = Regex.Replace(torrent.RdName!, trimRegex, "");
+            torrent.RdName = rdNameExtStripped;
+
             if (torrentClientTorrent.Bytes > 0)
             {
                 torrent.RdSize = torrentClientTorrent.Bytes;
@@ -217,7 +222,7 @@ public class PremiumizeTorrentClient(ILogger<PremiumizeTorrentClient> logger, IH
         Log($"Found transfer {transfer.Name} ({transfer.Id})", torrent);
 
         var downloadInfos = await GetAllDownloadInfos(torrent, transfer.FolderId);
-        
+
         if (!String.IsNullOrWhiteSpace(transfer.FileId))
         {
             var file = await GetClient().Items.DetailsAsync(transfer.FileId);
@@ -245,7 +250,7 @@ public class PremiumizeTorrentClient(ILogger<PremiumizeTorrentClient> logger, IH
     {
         // FileName is set in GetDownlaadInfos
         Debug.Assert(download.FileName != null);
-        
+
         return Task.FromResult(download.FileName);
     }
 

@@ -41,7 +41,7 @@ public class QBittorrentController(ILogger<QBittorrentController> logger, QBitto
 
         return Ok("Fails.");
     }
-        
+
     [AllowAnonymous]
     [Route("auth/login")]
     [HttpPost]
@@ -132,7 +132,7 @@ public class QBittorrentController(ILogger<QBittorrentController> logger, QBitto
         var result = Settings.AppDefaultSavePath;
         return Ok(result);
     }
-        
+
     [Authorize(Policy = "AuthSetting")]
     [Route("torrents/info")]
     [HttpGet]
@@ -341,16 +341,59 @@ public class QBittorrentController(ILogger<QBittorrentController> logger, QBitto
             }
             catch (RDNET.RealDebridException ex)
             {
-                // Infringing file.
-                if (ex.ErrorCode == 35)
+                if (ex.ErrorCode is int code && ErrorMessages.TryGetValue(code, out var msg))
                 {
-                    return Ok("Fails.");
+                    return Ok(msg);
                 }
+                return Ok($"Unknown error code: {ex.ErrorCode?.ToString() ?? "null"}");
             }
+
         }
 
         return Ok();
     }
+
+    private static readonly Dictionary<int, string> ErrorMessages = new()
+    {
+        [-1] = "Internal error",
+        [1] = "Missing parameter",
+        [2] = "Bad parameter value",
+        [3] = "Unknown method",
+        [4] = "Method not allowed",
+        [5] = "Slow down",
+        [6] = "Resource unreachable",
+        [7] = "Resource not found",
+        [8] = "Bad token",
+        [9] = "Permission denied",
+        [10] = "Two-Factor authentication needed",
+        [11] = "Two-Factor authentication pending",
+        [12] = "Invalid login",
+        [13] = "Invalid password",
+        [14] = "Account locked",
+        [15] = "Account not activated",
+        [16] = "Unsupported hoster",
+        [17] = "Hoster in maintenance",
+        [18] = "Hoster limit reached",
+        [19] = "Hoster temporarily unavailable",
+        [20] = "Hoster not available for free users",
+        [21] = "Too many active downloads",
+        [22] = "IP Address not allowed",
+        [23] = "Traffic exhausted",
+        [24] = "File unavailable",
+        [25] = "Service unavailable",
+        [26] = "Upload too big",
+        [27] = "Upload error",
+        [28] = "File not allowed",
+        [29] = "Torrent too big",
+        [30] = "Torrent file invalid",
+        [31] = "Action already done",
+        [32] = "Image resolution error",
+        [33] = "Torrent already active",
+        [34] = "Too many requests",
+        [35] = "Infringing file",
+        [36] = "Fair Usage Limit",
+        [37] = "Disabled endpoint"
+    };
 
     [Authorize(Policy = "AuthSetting")]
     [Route("torrents/add")]
@@ -369,7 +412,7 @@ public class QBittorrentController(ILogger<QBittorrentController> logger, QBitto
                 await qBittorrent.TorrentsAddFile(fileBytes, request.Category, request.Priority);
             }
         }
-            
+
         if (request.Urls != null)
         {
             return await TorrentsAdd(request);
@@ -377,7 +420,7 @@ public class QBittorrentController(ILogger<QBittorrentController> logger, QBitto
 
         return Ok();
     }
-        
+
     [Authorize(Policy = "AuthSetting")]
     [Route("torrents/setCategory")]
     [HttpGet]
@@ -432,7 +475,7 @@ public class QBittorrentController(ILogger<QBittorrentController> logger, QBitto
 
         return Ok();
     }
-        
+
     [Authorize(Policy = "AuthSetting")]
     [Route("torrents/removeCategories")]
     [HttpGet]
@@ -508,7 +551,7 @@ public class QBittorrentController(ILogger<QBittorrentController> logger, QBitto
     {
         return await SyncMainData();
     }
-    
+
     [Authorize(Policy = "AuthSetting")]
     [Route("transfer/info")]
     [HttpGet]
@@ -536,7 +579,7 @@ public class QBTorrentsInfoRequest
 {
     public String? Category { get; set; }
 }
-    
+
 public class QBTorrentsHashRequest
 {
     public String? Hash { get; set; }
@@ -560,7 +603,7 @@ public class QBTorrentsSetCategoryRequest
     public String? Hashes { get; set; }
     public String? Category { get; set; }
 }
-    
+
 public class QBTorrentsCreateCategoryRequest
 {
     public String? Category { get; set; }

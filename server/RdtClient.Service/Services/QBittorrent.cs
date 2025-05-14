@@ -370,9 +370,9 @@ public class QBittorrent(ILogger<QBittorrent> logger, Settings settings, Authent
         var result = new TorrentProperties
         {
             AdditionDate = torrent.Added.ToUnixTimeSeconds(),
-            Comment = "RealDebridClient <https://github.com/rogerfar/rdt-client>",
+            Comment = "RDTClient <https://github.com/mentalblank/rdt-client>",
             CompletionDate = torrent.Completed?.ToUnixTimeSeconds() ?? -1,
-            CreatedBy = "RealDebridClient <https://github.com/rogerfar/rdt-client>",
+            CreatedBy = "RDTClient <https://github.com/mentalblank/rdt-client>",
             CreationDate = torrent.Added.ToUnixTimeSeconds(),
             DlLimit = -1,
             DlSpeed = speed,

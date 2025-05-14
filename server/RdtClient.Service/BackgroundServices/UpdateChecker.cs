@@ -9,7 +9,7 @@ public class UpdateChecker(ILogger<UpdateChecker> logger) : BackgroundService
 {
     public static String? CurrentVersion { get; private set; }
     public static String? LatestVersion { get; private set; }
-    
+
     public static Boolean? IsInsecure { get; private set; }
 
     private static readonly List<String> KnownGhsaIds = [];
@@ -38,7 +38,7 @@ public class UpdateChecker(ILogger<UpdateChecker> logger) : BackgroundService
         {
             try
             {
-                var gitHubReleases = await GitHubRequest<List<GitHubReleasesResponse>>("/repos/rogerfar/rdt-client/tags?per_page=1", stoppingToken);
+                var gitHubReleases = await GitHubRequest<List<GitHubReleasesResponse>>("/repos/mentalblank/rdt-client/tags?per_page=1", stoppingToken);
 
                 var latestRelease = gitHubReleases?.FirstOrDefault(m => m.Name != null)?.Name;
 
@@ -55,10 +55,10 @@ public class UpdateChecker(ILogger<UpdateChecker> logger) : BackgroundService
 
                 LatestVersion = latestRelease;
 
-                var gitHubSecurityAdvisories = await GitHubRequest<List<GitHubSecurityAdvisoriesResponse>>("/repos/rogerfar/rdt-client/security-advisories", stoppingToken);
+                var gitHubSecurityAdvisories = await GitHubRequest<List<GitHubSecurityAdvisoriesResponse>>("/repos/mentalblank/rdt-client/security-advisories", stoppingToken);
 
                 var unseenGhsaIds = gitHubSecurityAdvisories?.Where(advisory => !KnownGhsaIds.Contains(advisory.GhsaId));
-                
+
                 if (unseenGhsaIds == null)
                 {
                     logger.LogWarning($"Unable to find security advisories on GitHub");
@@ -80,15 +80,15 @@ public class UpdateChecker(ILogger<UpdateChecker> logger) : BackgroundService
 
     private static async Task<T?> GitHubRequest<T>(String endpoint, CancellationToken cancellationToken)
     {
-            var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.UserAgent.Add(new("RdtClient", CurrentVersion));
-            var response = await httpClient.GetStringAsync($"https://api.github.com{endpoint}", cancellationToken);
-            
-            return JsonConvert.DeserializeObject<T>(response);
+        var httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.UserAgent.Add(new("RdtClient", CurrentVersion));
+        var response = await httpClient.GetStringAsync($"https://api.github.com{endpoint}", cancellationToken);
+
+        return JsonConvert.DeserializeObject<T>(response);
     }
 }
 
-public class GitHubReleasesResponse 
+public class GitHubReleasesResponse
 {
     [JsonProperty("name")]
     public String? Name { get; set; }
@@ -97,5 +97,5 @@ public class GitHubReleasesResponse
 public class GitHubSecurityAdvisoriesResponse
 {
     [JsonProperty("ghsa_id")]
-    public required String GhsaId { get; set; } 
+    public required String GhsaId { get; set; }
 }

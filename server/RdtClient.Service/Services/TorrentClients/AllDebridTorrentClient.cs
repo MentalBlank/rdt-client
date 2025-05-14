@@ -8,6 +8,7 @@ using RdtClient.Service.Helpers;
 using RdtClient.Data.Models.Data;
 using File = AllDebridNET.File;
 using Torrent = RdtClient.Data.Models.Data.Torrent;
+using System.Text.RegularExpressions;
 
 namespace RdtClient.Service.Services.TorrentClients;
 
@@ -194,6 +195,10 @@ public class AllDebridTorrentClient(ILogger<AllDebridTorrentClient> logger, IAll
                 torrent.RdName = torrentClientTorrent.Filename;
             }
 
+            var trimRegex = Settings.Get.Integrations.Default.TrimRegex ?? "";
+            var rdNameExtStripped = Regex.Replace(torrent.RdName!, trimRegex, "");
+            torrent.RdName = rdNameExtStripped;
+
             if (torrentClientTorrent.Bytes > 0)
             {
                 torrent.RdSize = torrentClientTorrent.Bytes;
@@ -252,13 +257,13 @@ public class AllDebridTorrentClient(ILogger<AllDebridTorrentClient> logger, IAll
         {
             return null;
         }
-        
+
         Log($"Getting download links", torrent);
-        
+
         var allFiles = await allDebridNetClientFactory.GetClient().Magnet.FilesAsync(Int64.Parse(torrent.RdId));
 
         var files = GetFiles(allFiles);
-        
+
         return files.Where(f => fileFilter.IsDownloadable(torrent, f.Path, f.Bytes) && f.DownloadLink != null).Select(f => new DownloadInfo
         {
             FileName = Path.GetFileName(f.Path),
@@ -271,7 +276,7 @@ public class AllDebridTorrentClient(ILogger<AllDebridTorrentClient> logger, IAll
     {
         // FileName is set in GetDownlaadInfos
         Debug.Assert(download.FileName != null);
-        
+
         return Task.FromResult(download.FileName);
     }
 
@@ -281,7 +286,7 @@ public class AllDebridTorrentClient(ILogger<AllDebridTorrentClient> logger, IAll
 
         return Map(result);
     }
-    
+
     private static List<TorrentClientFile> GetFiles(List<File>? files, String parentPath = "")
     {
         if (files == null)
@@ -291,8 +296,8 @@ public class AllDebridTorrentClient(ILogger<AllDebridTorrentClient> logger, IAll
 
         return files.SelectMany(file =>
         {
-            var currentPath = String.IsNullOrEmpty(parentPath) 
-                ? file.FolderOrFileName 
+            var currentPath = String.IsNullOrEmpty(parentPath)
+                ? file.FolderOrFileName
                 : Path.Combine(parentPath, file.FolderOrFileName);
 
             var result = new List<TorrentClientFile>();
@@ -336,7 +341,7 @@ public class AllDebridTorrentClient(ILogger<AllDebridTorrentClient> logger, IAll
         {
             return null;
         }
-        
+
         var directory = DownloadHelper.RemoveInvalidPathChars(torrent.RdName);
 
         var matchingTorrentFiles = torrent.Files.Where(m => m.Path.EndsWith(fileName)).Where(m => !String.IsNullOrWhiteSpace(m.Path)).ToList();

@@ -134,7 +134,7 @@ public class TorrentData(DataContext dataContext) : ITorrentData
         dbTorrent.RdSpeed = torrent.RdSpeed;
         dbTorrent.RdSeeders = torrent.RdSeeders;
         dbTorrent.RdFiles = torrent.RdFiles;
-        
+
         await dataContext.SaveChangesAsync();
 
         await VoidCache();
@@ -148,7 +148,7 @@ public class TorrentData(DataContext dataContext) : ITorrentData
         {
             return;
         }
-        
+
         dbTorrent.RdId = rdId;
 
         await dataContext.SaveChangesAsync();

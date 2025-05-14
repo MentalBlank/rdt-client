@@ -1,4 +1,35 @@
+@use 'sass:math';
+
+$chevron-size: 0.25rem;
+
 table {
+  th {
+    white-space: nowrap;
+    user-select: none;
+    cursor: pointer;
+
+    &.sort-active {
+      &::before {
+        content: '';
+        display: inline-block;
+        width: $chevron-size;
+        height: $chevron-size;
+        margin-right: $chevron-size;
+        border: $chevron-size solid transparent;
+        border-bottom-color: #777;
+        transform: translateY(-#{math.div($chevron-size, 2)});
+      }
+    }
+
+    &.sort-descending {
+      &::before {
+        border-bottom-color: transparent;
+        border-top-color: #777;
+        transform: translateY(#{math.div($chevron-size, 2)});
+      }
+    }
+  }
+
   tr {
     cursor: pointer;
     td.break-all {

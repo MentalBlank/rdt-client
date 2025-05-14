@@ -9,5 +9,13 @@
 
 # permissions
 echo "Setting permissions"
-chown -R abc:abc \
-	/app /data
+
+if [ ! -w /data/db ]; then
+  echo "[init] Fixing /data/db ownership..."
+  chown -R abc:abc /data/db
+fi
+
+if [ ! -w /data/downloads ]; then
+  echo "[init] Fixing /data/downloads ownership..."
+  chown abc:abc /data/downloads
+fi
